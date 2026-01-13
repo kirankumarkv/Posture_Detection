@@ -2,7 +2,7 @@ Here is a comprehensive README file for your GitHub repository, based on the arc
 
 ---
 
-# Webcam-Based Upright Posture Detection System
+# Webcam-Based Posture Detection System
 
 This repository provides an end-to-end solution for detecting human sitting posture in real-time using a standard webcam. It utilizes **MediaPipe Pose** for landmark extraction and a hybrid **CNN-LSTM** deep learning model for high-accuracy classification.
 
