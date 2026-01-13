@@ -6,7 +6,7 @@ Here is a comprehensive README file for your GitHub repository, based on the arc
 
 This repository provides an end-to-end solution for detecting human sitting posture in real-time using a standard webcam. It utilizes **MediaPipe Pose** for landmark extraction and a hybrid **CNN-LSTM** deep learning model for high-accuracy classification.
 
-## 🚀 Overview
+## Overview
 
 The project is designed to help users maintain a healthy posture while working at a computer. It identifies five distinct posture classes:
 
@@ -16,7 +16,7 @@ The project is designed to help users maintain a healthy posture while working a
 * **Leaning Left**
 * **Leaning Right**
 
-## 🧠 Model Architecture
+## Model Architecture
 
 The system employs a sophisticated neural network designed for high-precision (0.99+ target) classification of spatial-temporal pose data:
 
@@ -26,7 +26,7 @@ The system employs a sophisticated neural network designed for high-precision (0
 4. **Dense Layers**: Deep feature integration with Batch Normalization and Dropout to prevent overfitting.
 5. **Output Layer**: Softmax activation for 5-class classification.
 
-## 📁 Project Structure
+## Project Structure
 
 * `Working_Transfer_Learning_Training_27_09.ipynb`: The training pipeline including data augmentation, balanced dataset creation, and model checkpointing.
 * `Working_Inference 4.ipynb`: The real-time application using OpenCV and MediaPipe for live posture feedback.
@@ -35,7 +35,7 @@ The system employs a sophisticated neural network designed for high-precision (0
 * `high_accuracy_scaler.pkl`: StandardScaler used for feature normalization.
 * `high_accuracy_encoder.pkl`: LabelEncoder for posture categories.
 
-## 🛠️ Installation
+## Installation
 
 1. **Clone the repository**:
 ```bash
@@ -53,7 +53,7 @@ pip install opencv-python mediapipe tensorflow pandas numpy scikit-learn joblib 
 
 
 
-## 📈 Training Pipeline
+## Training Pipeline
 
 The training notebook supports **Transfer Learning**, allowing you to fine-tune existing weights with new data.
 
@@ -62,7 +62,7 @@ The training notebook supports **Transfer Learning**, allowing you to fine-tune 
 * **Optimizer**: Uses `AMSGrad` for better convergence over 200 epochs.
 * **Callbacks**: Includes `EarlyStopping` and `ReduceLROnPlateau` for optimized training.
 
-## 💻 Usage (Inference)
+## Usage (Inference)
 
 Run the inference notebook to start the live detection app.
 
