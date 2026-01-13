@@ -1,106 +1,101 @@
-This guide provides a comprehensive **README** structure, training logic using **Transfer Learning** (via YOLO11-Pose or MobileNetV2), and a streamlined **Inference** script for testing.
+Here is a comprehensive README file for your GitHub repository, based on the architecture, training pipeline, and inference logic found in your code.
 
 ---
 
-## Project: AI Posture Detection
+# Webcam-Based Upright Posture Detection System
 
-This repository implements a robust posture detection system. It uses **Transfer Learning** to leverage pre-trained weights from high-performance models (like YOLO11-Pose), fine-tuning them to classify specific postures (e.g., "Slumped," "Cross-legged," "Correct").
+This repository provides an end-to-end solution for detecting human sitting posture in real-time using a standard webcam. It utilizes **MediaPipe Pose** for landmark extraction and a hybrid **CNN-LSTM** deep learning model for high-accuracy classification.
 
-### 1. Project Structure
+## 🚀 Overview
 
-```text
-posture-detection/
-├── data/               # Dataset (organized by class)
-├── models/             # Saved .pt or .h5 models
-├── train.py            # Training script (Transfer Learning)
-├── inference.py        # Testing/Real-time script
-└── requirements.txt    # Dependencies
+The project is designed to help users maintain a healthy posture while working at a computer. It identifies five distinct posture classes:
+
+* **Upright** (Ideal)
+* **Leaning Forward**
+* **Leaning Backward**
+* **Leaning Left**
+* **Leaning Right**
+
+## 🧠 Model Architecture
+
+The system employs a sophisticated neural network designed for high-precision (0.99+ target) classification of spatial-temporal pose data:
+
+1. **Input Layer**: Accepts pose landmarks (X, Y, Z, and visibility).
+2. **1D Convolutional Layers**: Extract spatial features and local patterns from landmark coordinates.
+3. **LSTM Layers**: Capture temporal dependencies and the "flow" of movement.
+4. **Dense Layers**: Deep feature integration with Batch Normalization and Dropout to prevent overfitting.
+5. **Output Layer**: Softmax activation for 5-class classification.
+
+## 📁 Project Structure
+
+* `Working_Transfer_Learning_Training_27_09.ipynb`: The training pipeline including data augmentation, balanced dataset creation, and model checkpointing.
+* `Working_Inference 4.ipynb`: The real-time application using OpenCV and MediaPipe for live posture feedback.
+* `pose_landmarker_lite.task`: MediaPipe model asset for landmark detection.
+* `high_accuracy_posture_model.h5`: Trained Keras model weights.
+* `high_accuracy_scaler.pkl`: StandardScaler used for feature normalization.
+* `high_accuracy_encoder.pkl`: LabelEncoder for posture categories.
+
+## 🛠️ Installation
+
+1. **Clone the repository**:
+```bash
+git clone https://github.com/your-username/posture-detection-system.git
+cd posture-detection-system
 
 ```
 
----
 
-### 2. Training with Transfer Learning
+2. **Install dependencies**:
+```bash
+pip install opencv-python mediapipe tensorflow pandas numpy scikit-learn joblib matplotlib tqdm
 
-For 2026, **YOLO11-Pose** is the gold standard for balancing speed and accuracy. Below is a Python snippet to fine-tune a pre-trained model on your custom posture dataset.
+```
+
+
+
+## 📈 Training Pipeline
+
+The training notebook supports **Transfer Learning**, allowing you to fine-tune existing weights with new data.
+
+* **Data Augmentation**: Enhances the dataset using Gaussian noise, scaling, and spatial shifting.
+* **Class Balancing**: Automatically upsamples minority classes to create a high-quality 10,000-sample balanced dataset.
+* **Optimizer**: Uses `AMSGrad` for better convergence over 200 epochs.
+* **Callbacks**: Includes `EarlyStopping` and `ReduceLROnPlateau` for optimized training.
+
+## 💻 Usage (Inference)
+
+Run the inference notebook to start the live detection app.
+
+1. **Initialize**: The app loads the model, scaler, and encoder.
+2. **Calibration**: Sit in your ideal "upright" position and trigger calibration to set your baseline.
+3. **Monitoring**: The system provides a live video feed with overlaid skeletal landmarks and real-time posture classification.
+4. **Temporal Smoothing**: Uses a prediction history buffer to prevent flickering results.
 
 ```python
-from ultralytics import YOLO
-
-# 1. Load a pre-trained Pose model (Transfer Learning)
-# "n" is Nano for speed, "m" is Medium for accuracy
-model = YOLO('yolo11n-pose.pt') 
-
-# 2. Train on your custom dataset
-# data.yaml defines the paths to your "Good" and "Bad" posture images
-results = model.train(
-    data='posture_data.yaml', 
-    epochs=50, 
-    imgsz=640, 
-    batch=16,
-    name='custom_posture_model'
+# Example snippet to run the detector
+app = PostureDetectionApp(
+    model_path='high_accuracy_posture_model_XXXXXXXXXX.h5',
+    scaler_path='high_accuracy_scaler_XXXXXXXXXX.pkl',
+    label_encoder_path='high_accuracy_encoder_XXXXXXXXXX.pkl'
 )
+app.run()
 
 ```
 
----
+Performance Analysis
 
-### 3. Inference Code (Testing)
+The training process generates comprehensive evaluation metrics:
 
-Once trained, use this script to run inference on a webcam or static image. It detects keypoints (eyes, shoulders, hips) and calculates angles to determine posture quality.
+Classification Reports: Precision, recall, and F1-score for every posture.
+Confidence Analysis: Mean and max prediction confidence levels.
+Learning Curves: Visualization of accuracy/loss over epochs.
 
-```python
-import cv2
-from ultralytics import YOLO
+License
 
-# Load your fine-tuned model
-model = YOLO('runs/pose/custom_posture_model/weights/best.pt')
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-# Initialize Webcam
-cap = cv2.VideoCapture(0)
 
-while cap.isOpened():
-    success, frame = cap.read()
-    if not success: break
 
-    # Run Inference
-    results = model(frame, save=False)
-
-    # Process results
-    for r in results:
-        # Access keypoints (x, y, confidence)
-        keypoints = r.keypoints.xyn.cpu().numpy()
-        
-        # Example: Simple logic for "Slumped" detection 
-        # (Comparing shoulder height vs hip height)
-        # 5 = Left Shoulder, 11 = Left Hip
-        if len(keypoints[0]) > 11:
-            shoulder_y = keypoints[0][5][1]
-            hip_y = keypoints[0][11][1]
-            
-            status = "Good Posture" if (hip_y - shoulder_y) > 0.3 else "Slumping!"
-            cv2.putText(frame, status, (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-    cv2.imshow('Posture Detection Test', frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
-
-```
-
----
-
-### 4. Key Metrics to Track
-
-When evaluating your model, focus on these three metrics:
-
-1. **mAP@.5:** Mean Average Precision for keypoint detection.
-2. **Inference Latency:** Target  for real-time feedback.
-3. **Angle Accuracy:** The deviation error in degrees for critical joints (e.g., neck-to-shoulder angle).
-
-Would you like me to help you generate a `data.yaml` file or a data augmentation script to expand your training set?
-
-[Building a Body Posture Analysis System](https://www.youtube.com/watch?v=lSvo9mRrTHY)
-This video provides a practical walkthrough of setting up a posture analysis pipeline using deep learning and keypoint estimation.
+* **MediaPipe Pose Implementation**: Cites the use of landmark indices [0, 2, 5, 7, 8, 9, 10, 11, 12, etc.].
+* **Deep Learning Details**: Reflects the `Conv1D`, `LSTM`, and `Dense` architecture found in your inference and training code.
+* **Training Enhancements**: Highlights the use of `AMSGrad`, `EarlyStopping`, and 200-epoch targets specified in the training logs.
